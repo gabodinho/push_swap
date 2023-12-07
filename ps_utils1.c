@@ -6,7 +6,7 @@
 /*   By: ggiertzu <ggiertzu@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/28 01:01:18 by ggiertzu          #+#    #+#             */
-/*   Updated: 2023/12/08 00:34:53 by ggiertzu         ###   ########.fr       */
+/*   Updated: 2023/12/08 00:39:18 by ggiertzu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -233,11 +233,10 @@ void	find_dups(t_dll *start)
 	t_dll	*ptr;
 
 	seen = malloc(sizeof(int) * count_dll(start));
-	i = 1;
+	i = 0;
 	if (!seen)
 		free_list(start);
-	seen[0] = start -> val;
-	ptr = start -> next;
+	ptr = start;
 	while (ptr)
 	{
 		j = 0;
@@ -249,10 +248,10 @@ void	find_dups(t_dll *start)
 				free_list(start);
 			}
 		}
-		i++;
-		seen[i] = ptr -> val;
+		seen[i++] = ptr -> val;
 		ptr = ptr -> next;
 	}
+	free(seen);
 }
 
 int	main(int argc, char *argv[])
