@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ps_utils1.c                                        :+:      :+:    :+:   */
+/*   ps_funcs.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ggiertzu <ggiertzu@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/28 01:01:18 by ggiertzu          #+#    #+#             */
-/*   Updated: 2023/12/08 12:38:55 by ggiertzu         ###   ########.fr       */
+/*   Updated: 2023/12/09 23:00:53 by ggiertzu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include <stdlib.h>
 //#include <unistd.h>
 #include <ctype.h>
+
+
 
 typedef struct	s_dll
 {
@@ -108,6 +110,8 @@ void	free_list(t_dll *top)
 	throw_error(EXIT_FAILURE);
 }
 
+
+
 // delete this function for final version
 void	printl(t_dll *top)
 {
@@ -119,6 +123,89 @@ void	printl(t_dll *top)
 		printf("val: %d\n", ptr -> val);
 		ptr = ptr -> lower;
 	}
+}
+
+void	rm_top_node(t_dll **top)
+{
+	t_dll	*temp;
+
+	if (!*top)
+		return ;
+	else if (count_dll(*top) == 1)
+	{
+		free_list(*top);
+		*top = NULL;
+	}
+	else
+	{
+		(*top -> lower) -> higher = *top -> higher;
+		(*top -> higher) -> lower = *top -> lower;
+		temp = *top -> lower;
+		free(*top);
+		*top = temp;
+	}
+}
+
+void	add_top_node(t_dll **top; t_dll *node)
+{
+	if (*top)
+	{
+		temp = *top;
+		node -> higher = temp -> higher;
+		(temp -> higher) -> lower = node;
+		temp -> higher = node;
+		node -> lower = temp;
+	}
+	*top = node;
+}
+
+/*
+t_dll	*cp_node(t_dll *node)
+{
+	int	temp;
+
+	if (!node)
+		return ;
+	temp = node -> val;
+	return (new_node(
+*/
+
+void	swap_a(t_dll *sa)
+{
+	int	temp;
+
+	if (count_dll(sa) < 2)
+		return ;
+	temp = sa -> val;
+	sa -> val = (sa -> next) -> val;
+	(sa -> next) -> val = temp;
+}
+
+void	swap_b(t_dll *sb)
+{
+	int	temp;
+
+	if (count_dll(sb) < 2)
+		return ;
+	temp = sb -> val;
+	sb -> val = (sb -> next) -> val;
+	(sb -> next) -> val = temp;
+}
+
+void	swap_ab(t_dll *stack_a, t_dll *stack_b)
+{
+	swap_a(sa);
+	swap_b(sb);
+}
+
+void	push_a(t_dll **topb, t_dll **topa)
+{
+	t_dll	*temp;
+
+	if (!*topb)
+		return ;
+	add_top_node(topa, new_node(*topb -> val));
+	rm_top_node(topb);									// continue here <----
 }
 
 static long	ft_digtoi(const char *nptr)
