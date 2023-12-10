@@ -6,7 +6,7 @@
 /*   By: ggiertzu <ggiertzu@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/28 01:01:18 by ggiertzu          #+#    #+#             */
-/*   Updated: 2023/12/09 23:00:53 by ggiertzu         ###   ########.fr       */
+/*   Updated: 2023/12/10 16:04:47 by ggiertzu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,16 +138,18 @@ void	rm_top_node(t_dll **top)
 	}
 	else
 	{
-		(*top -> lower) -> higher = *top -> higher;
-		(*top -> higher) -> lower = *top -> lower;
-		temp = *top -> lower;
+		(*top) -> lower -> higher = (*top) -> higher;
+		(*top) -> higher -> lower = (*top) -> lower;
+		temp = (*top) -> lower;
 		free(*top);
 		*top = temp;
 	}
 }
 
-void	add_top_node(t_dll **top; t_dll *node)
+void	add_top_node(t_dll **top, t_dll *node)
 {
+	t_dll	*temp;
+
 	if (*top)
 	{
 		temp = *top;
@@ -170,32 +172,32 @@ t_dll	*cp_node(t_dll *node)
 	return (new_node(
 */
 
-void	swap_a(t_dll *sa)
+void	swap_a(t_dll *topa)
 {
 	int	temp;
 
-	if (count_dll(sa) < 2)
+	if (count_dll(topa) < 2)
 		return ;
-	temp = sa -> val;
-	sa -> val = (sa -> next) -> val;
-	(sa -> next) -> val = temp;
+	temp = topa -> val;
+	topa -> val = (topa -> lower) -> val;
+	(topa -> lower) -> val = temp;
 }
 
-void	swap_b(t_dll *sb)
+void	swap_b(t_dll *topb)
 {
 	int	temp;
 
-	if (count_dll(sb) < 2)
+	if (count_dll(topb) < 2)
 		return ;
-	temp = sb -> val;
-	sb -> val = (sb -> next) -> val;
-	(sb -> next) -> val = temp;
+	temp = topb -> val;
+	topb -> val = (topb -> lower) -> val;
+	(topb -> lower) -> val = temp;
 }
 
-void	swap_ab(t_dll *stack_a, t_dll *stack_b)
+void	swap_ab(t_dll *topa, t_dll *topb)
 {
-	swap_a(sa);
-	swap_b(sb);
+	swap_a(topa);
+	swap_b(topb);
 }
 
 void	push_a(t_dll **topb, t_dll **topa)
@@ -204,8 +206,58 @@ void	push_a(t_dll **topb, t_dll **topa)
 
 	if (!*topb)
 		return ;
-	add_top_node(topa, new_node(*topb -> val));
-	rm_top_node(topb);									// continue here <----
+	add_top_node(topa, new_node((*topb) -> val));
+	rm_top_node(topb);
+}
+
+void	push_b(t_dll **topa, t_dll **topb)
+{
+	t_dll	*temp;
+
+	if (!*topa)
+		return ;
+	add_top_node(topb, new_node((*topa) -> val));
+	rm_top_node(topa);
+}
+
+void	rotate_a(t_dll **top)
+{
+	if (!*top)
+		return ;
+	*top = (*top) -> lower;
+}
+
+void	rotate_b(t_dll **top)
+{
+	if (!*top)
+		return ;
+	*top = (*top) -> lower;
+}
+
+void	rotate_ab(t_dll **topa, t_dll **topb)
+{
+	rotate_a(topa);
+	rotate_b(topb);
+}
+
+void	rev_rot_a(t_dll **top)
+{
+	if (!*top)
+		return ;
+	*top = (*top) -> higher;
+}
+
+void	rev_rot_b(t_dll **top)
+{
+	if (!*top)
+		return ;
+	*top = (*top) -> higher;
+}
+
+void	rev_rot_ab(t_dll **topa, t_dll **topb)
+{
+	rev_rot_a(topa);
+	rev_rot_b(topb);
 }
 
 static long	ft_digtoi(const char *nptr)
