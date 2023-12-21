@@ -6,7 +6,7 @@
 /*   By: ggiertzu <ggiertzu@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/28 01:01:18 by ggiertzu          #+#    #+#             */
-/*   Updated: 2023/12/10 16:04:47 by ggiertzu         ###   ########.fr       */
+/*   Updated: 2023/12/20 19:06:07 by ggiertzu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,13 +38,49 @@ t_dll	*new_node(int val)
 	return (new);
 }
 
+int	count_stack(t_dll *start)
+{
+	t_dll	*ptr;
+	int		i;
+
+	if (!start)
+		return (0);
+	ptr = start -> lower;
+	i = 1;
+	while (ptr != start && ptr)
+	{
+		ptr = ptr -> lower;
+		i++;
+	}
+	return (i);
+}
+
+int	count_dll(t_dll	*top)
+{
+	t_dll	*ptr;
+	int		i;
+
+	ptr = top;
+	i = 0;
+	while (ptr)
+	{
+		i++;
+		ptr = ptr -> lower;
+	}
+	return (i);
+}
+
 void	del_list(t_dll *ref)
 {
-	if (ref)
+	t_dll	*ptr;
+	int	count;
+
+	count = count_stack(ref);
+	while (count-- > 0)
 	{
-		del_list(ref -> lower);
+		ptr = ref -> lower;
 		free(ref);
-		ref = 0;
+		ref = ptr;
 	}
 }
 
@@ -66,22 +102,6 @@ void	add_last(t_dll **ref, int val)
 		del_list(*ref);
 	ptr -> lower = new;
 	new -> higher = ptr;
-}
-
-
-int	count_dll(t_dll	*top)
-{
-	t_dll	*ptr;
-	int		i;
-
-	ptr = top;
-	i = 0;
-	while (ptr)
-	{
-		i++;
-		ptr = ptr -> lower;
-	}
-	return (i);
 }
 
 void	close_dll(t_dll *top)
@@ -125,15 +145,43 @@ void	printl(t_dll *top)
 	}
 }
 
+void	print_stacks(t_dll *a, t_dll *b)
+{
+	int	x = count_stack(a);
+	int	y = count_stack(b);
+	t_dll *ptr_a = a;
+	t_dll *ptr_b = b;
+
+	printf(" A\tB\n");
+	while (x > 0  || y > 0)
+	{
+		if (x-- > 0)
+		{
+			printf("%d\t", ptr_a -> val);
+			ptr_a = ptr_a -> lower;
+		}
+		else
+			printf(" \t");
+		if (y-- > 0)
+		{
+			printf("%d\n", ptr_b -> val);
+			ptr_b = ptr_b -> lower;
+		}
+		else
+			printf("\n");
+	}
+}
+
+
 void	rm_top_node(t_dll **top)
 {
 	t_dll	*temp;
 
 	if (!*top)
 		return ;
-	else if (count_dll(*top) == 1)
+	else if (count_stack(*top) == 1)
 	{
-		free_list(*top);
+		del_list(*top);
 		*top = NULL;
 	}
 	else
@@ -157,8 +205,13 @@ void	add_top_node(t_dll **top, t_dll *node)
 		(temp -> higher) -> lower = node;
 		temp -> higher = node;
 		node -> lower = temp;
+		*top = node;
 	}
-	*top = node;
+	else
+	{
+		*top = node;
+		close_dll(*top);
+	}
 }
 
 /*
@@ -412,8 +465,19 @@ int	push_swap(t_dll *stack_a)
 {
 	t_dll	*stack_b;
 
+	stack_b = 0;
 	close_dll(stack_a);
-							// ---------> continue here
+	push_b(&stack_a, &stack_b);
+	push_b(&stack_a, &stack_b);
+	push_b(&stack_a, &stack_b);
+	push_b(&stack_a, &stack_b);
+	push_b(&stack_a, &stack_b);
+	push_a(&stack_b, &stack_a);
+	push_a(&stack_b, &stack_a);
+	push_a(&stack_b, &stack_a);
+	push_a(&stack_b, &stack_a);
+	print_stacks(stack_a, stack_b);		// ---------> continue here
+	return (1);
 }
 	
 
@@ -421,7 +485,6 @@ int	main(int argc, char *argv[])
 {
 	t_dll *top = check_input(argc, argv);
 	printl(top);
-	del_list(top);
-	printl(top);
+	push_swap(top);
 	return (0);
 }
