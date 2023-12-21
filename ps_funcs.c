@@ -6,7 +6,7 @@
 /*   By: ggiertzu <ggiertzu@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/28 01:01:18 by ggiertzu          #+#    #+#             */
-/*   Updated: 2023/12/20 19:06:07 by ggiertzu         ###   ########.fr       */
+/*   Updated: 2023/12/22 00:18:32 by ggiertzu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -461,6 +461,104 @@ t_dll	*check_input(int argc, char *argv[])
 	return (top);
 }
 
+int	get_steps(t_dll *stack, int x)
+{
+	int	len;
+
+	len = count_stack(stack);
+	if (x > len)
+		return (0);
+	if (len / 2 + 1 >= x)
+		return (x - 1);
+	else
+		return (-(len + 1 - x));
+}
+
+
+// given that b is sorted (desc), this func returns the postition of x in b
+int	get_pos_b(t_dll *b, int x)
+{
+	int		pos;
+	int		v;
+	int		h;
+	t_dll	*ptr;
+
+	if (!b)
+		return (0);	// --> create new node and put on top
+	else if (count_stack(b) == 1)
+		return (1);
+	ptr = b;
+	pos = 1;
+	v = ptr -> val;
+	h = (ptr -> higher) -> val;
+	while ((v > x && x > h) || (h > v && v > x) || (x > h && h > v))
+	{
+		pos++;
+		h = v;
+		ptr = ptr -> lower;
+		v = ptr -> val;
+	}
+	return (pos);
+}
+
+int	ft_abs(int i)
+{
+	if (i < 0)
+		return (i * -1);
+	else
+		return (i);
+}
+
+int	get_val(t_dll *stack, int idx)
+{
+	int	i;
+
+	i = 1;
+	while (i++ < idx)
+		stack = stack -> lower;
+	return (stack -> val);
+}
+
+int	find_opt(t_dll *a, t_dll *b)
+{
+	int	ar[6];
+	int	len;
+	int	i;
+
+	len = count_stack(a);
+	i = 1;
+	ar[3] = 0;
+	while (i <= len)
+	{
+		ar[0] = i;
+		ar[1] = get_steps(a, i);
+		ar[2] = get_steps(b, get_pos_b(b, get_val(a, i++)));
+		if (ar[3] == 0 || ft_abs(ar[1] - ar[2]) < ft_abs(ar[4] - ar[5]))
+		{
+			ar[3] = ar[0];
+			ar[4] = ar[1];
+			ar[5] = ar[2];
+		}
+		printf("pos: %d, A: %d, C: %d, res: %d\n", ar[0], ar[1], ar[2], ft_abs(ar[1] - ar[2]));
+	}
+	printf("pos: %d, A: %d, C: %d\n", ar[3], ar[4], ar[5]);
+	return (1);
+}
+
+/*
+int	fill_b(t_dll *a, t_dll *b)
+{
+	int	len;
+	int	i;
+	t_dll	*ptr;
+
+	len = count_stack(a);
+	i = 1;
+	ptr = a;
+	while (i <= len) 
+	{
+*/		
+
 int	push_swap(t_dll *stack_a)
 {
 	t_dll	*stack_b;
@@ -472,11 +570,13 @@ int	push_swap(t_dll *stack_a)
 	push_b(&stack_a, &stack_b);
 	push_b(&stack_a, &stack_b);
 	push_b(&stack_a, &stack_b);
-	push_a(&stack_b, &stack_a);
-	push_a(&stack_b, &stack_a);
-	push_a(&stack_b, &stack_a);
-	push_a(&stack_b, &stack_a);
+/*	int i = 1;
+	while (i <= count_stack(stack_a))
+		printf("min steps: %d\n", get_steps(stack_a, i++));
+*/
 	print_stacks(stack_a, stack_b);		// ---------> continue here
+//	printf("\npos: %d\n", get_pos_b(stack_a, 45));
+	find_opt(stack_a, stack_b);
 	return (1);
 }
 	
