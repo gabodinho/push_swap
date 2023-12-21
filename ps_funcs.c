@@ -6,7 +6,7 @@
 /*   By: ggiertzu <ggiertzu@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/28 01:01:18 by ggiertzu          #+#    #+#             */
-/*   Updated: 2023/12/22 00:18:32 by ggiertzu         ###   ########.fr       */
+/*   Updated: 2023/12/22 00:55:57 by ggiertzu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -519,6 +519,27 @@ int	get_val(t_dll *stack, int idx)
 	return (stack -> val);
 }
 
+int	ft_max(int a, int b)
+{
+	if (a > b)
+		return (a);
+	else
+		return (b);
+}
+
+int	get_min(int a, int b)
+{
+	if (a * b > 0)
+		return (ft_max(ft_abs(a), (ft_abs(b))));
+	else if (a * b < 0)
+		return (ft_abs(a - b));
+	else if (a == 0 && b == 0)
+		return (0);
+	else
+		return (ft_max(ft_abs(a), (ft_abs(b))));
+}
+
+
 int	find_opt(t_dll *a, t_dll *b)
 {
 	int	ar[6];
@@ -533,13 +554,13 @@ int	find_opt(t_dll *a, t_dll *b)
 		ar[0] = i;
 		ar[1] = get_steps(a, i);
 		ar[2] = get_steps(b, get_pos_b(b, get_val(a, i++)));
-		if (ar[3] == 0 || ft_abs(ar[1] - ar[2]) < ft_abs(ar[4] - ar[5]))
+		if (ar[3] == 0 || get_min(ar[1], ar[2]) < get_min(ar[4], ar[5]))
 		{
 			ar[3] = ar[0];
 			ar[4] = ar[1];
 			ar[5] = ar[2];
 		}
-		printf("pos: %d, A: %d, C: %d, res: %d\n", ar[0], ar[1], ar[2], ft_abs(ar[1] - ar[2]));
+		printf("pos: %d, A: %d, C: %d, res: %d\n", ar[0], ar[1], ar[2], get_min(ar[1], ar[2]));
 	}
 	printf("pos: %d, A: %d, C: %d\n", ar[3], ar[4], ar[5]);
 	return (1);
