@@ -6,7 +6,7 @@
 /*   By: ggiertzu <ggiertzu@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/28 01:01:18 by ggiertzu          #+#    #+#             */
-/*   Updated: 2023/12/22 00:55:57 by ggiertzu         ###   ########.fr       */
+/*   Updated: 2023/12/22 23:04:15 by ggiertzu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,14 +16,14 @@
 //#include <unistd.h>
 #include <ctype.h>
 
-
-
 typedef struct	s_dll
 {
 	int				val;
 	struct s_dll	*higher;
 	struct s_dll	*lower;
 } t_dll;
+
+typedef void    (*fptr)(t_dll **, t_dll **);
 
 t_dll	*new_node(int val)
 {
@@ -152,7 +152,7 @@ void	print_stacks(t_dll *a, t_dll *b)
 	t_dll *ptr_a = a;
 	t_dll *ptr_b = b;
 
-	printf(" A\tB\n");
+	printf("\n A\tB\n");
 	while (x > 0  || y > 0)
 	{
 		if (x-- > 0)
@@ -253,64 +253,67 @@ void	swap_ab(t_dll *topa, t_dll *topb)
 	swap_b(topb);
 }
 
-void	push_a(t_dll **topb, t_dll **topa)
+void	push_a(t_dll **a, t_dll **b)
 {
 	t_dll	*temp;
 
-	if (!*topb)
+	if (!*a)
 		return ;
-	add_top_node(topa, new_node((*topb) -> val));
-	rm_top_node(topb);
+	add_top_node(b, new_node((*a) -> val));
+	rm_top_node(b);
 }
 
-void	push_b(t_dll **topa, t_dll **topb)
+void	push_b(t_dll **a, t_dll **b)
 {
 	t_dll	*temp;
 
-	if (!*topa)
+	if (!*a)
 		return ;
-	add_top_node(topb, new_node((*topa) -> val));
-	rm_top_node(topa);
+	add_top_node(b, new_node((*a) -> val));
+	rm_top_node(a);
 }
 
-void	rotate_a(t_dll **top)
+void	rotate_a(t_dll **a, t_dll **b)
 {
-	if (!*top)
+	(void)	b;
+	if (!*a)
 		return ;
-	*top = (*top) -> lower;
+	*a = (*a) -> lower;
 }
 
-void	rotate_b(t_dll **top)
+void	rotate_b(t_dll **a, t_dll **b)
 {
-	if (!*top)
+	(void)	a;
+	if (!*b)
 		return ;
-	*top = (*top) -> lower;
+	*b = (*b) -> lower;
 }
 
-void	rotate_ab(t_dll **topa, t_dll **topb)
+void	rotate_ab(t_dll **a, t_dll **b)
 {
-	rotate_a(topa);
-	rotate_b(topb);
+	rotate_a(a, b);
+	rotate_b(a, b);
 }
 
-void	rev_rot_a(t_dll **top)
+void	rev_rot_a(t_dll **a, t_dll **b)
 {
-	if (!*top)
+	(void)	b;
+	if (!*a)
 		return ;
-	*top = (*top) -> higher;
+	*a = (*b) -> higher;
 }
 
-void	rev_rot_b(t_dll **top)
+void	rev_rot_b(t_dll **a, t_dll **b)
 {
-	if (!*top)
+	if (!*b)
 		return ;
-	*top = (*top) -> higher;
+	*b = (*b) -> higher;
 }
 
-void	rev_rot_ab(t_dll **topa, t_dll **topb)
+void	rev_rot_ab(t_dll **a, t_dll **b)
 {
-	rev_rot_a(topa);
-	rev_rot_b(topb);
+	rev_rot_a(a, b);
+	rev_rot_b(a, b);
 }
 
 static long	ft_digtoi(const char *nptr)
@@ -527,7 +530,15 @@ int	ft_max(int a, int b)
 		return (b);
 }
 
-int	get_min(int a, int b)
+int	ft_min(int a, int b)
+{
+	if (a < b)
+		return (a);
+	else
+		return (b);
+}
+
+int	get_nmoves(int a, int b)
 {
 	if (a * b > 0)
 		return (ft_max(ft_abs(a), (ft_abs(b))));
@@ -539,44 +550,130 @@ int	get_min(int a, int b)
 		return (ft_max(ft_abs(a), (ft_abs(b))));
 }
 
+void	fill_zeros(int *ar)
+{
+	int	i;
 
-int	find_opt(t_dll *a, t_dll *b)
+	i = 0;
+	while (i < 3)
+		ar[i++] = 0;
+}
+
+// mv = [ra || rra, rb || rrb, rr || rrr]
+void	get_moves(int na, int nb, int mv[3])
+{
+	int	temp;
+
+	fill_zeros(mv);
+	if (na > 0 && nb > 0)
+	{
+		mv[2] = ft_min(na, nb);
+		temp = na;
+		na -= ft_min(na, nb);
+		nb -= ft_min(temp, nb);
+	}
+	else if (na < 0 && nb < 0)
+	{
+		mv[2] = ft_max(na, nb);
+		temp = na;
+		na -= ft_max(na, nb);
+		nb -= ft_max(temp, nb);
+	}
+	mv[0] = na;
+	mv[1] = nb;
+}
+
+void	get_opt(t_dll **a, t_dll **b, int mv[3])
 {
 	int	ar[6];
 	int	len;
 	int	i;
 
-	len = count_stack(a);
+	len = count_stack(*a);
 	i = 1;
 	ar[3] = 0;
 	while (i <= len)
 	{
 		ar[0] = i;
-		ar[1] = get_steps(a, i);
-		ar[2] = get_steps(b, get_pos_b(b, get_val(a, i++)));
-		if (ar[3] == 0 || get_min(ar[1], ar[2]) < get_min(ar[4], ar[5]))
+		ar[1] = get_steps(*a, i);
+		ar[2] = get_steps(*b, get_pos_b(*b, get_val(*a, i++)));
+		if (ar[3] == 0 || get_nmoves(ar[1], ar[2]) < get_nmoves(ar[4], ar[5]))
 		{
 			ar[3] = ar[0];
 			ar[4] = ar[1];
 			ar[5] = ar[2];
 		}
-		printf("pos: %d, A: %d, C: %d, res: %d\n", ar[0], ar[1], ar[2], get_min(ar[1], ar[2]));
+//		printf("pos: %d, A: %d, C: %d, res: %d\n", ar[0], ar[1], ar[2], get_nmoves(ar[1], ar[2]));
 	}
+	get_moves(ar[4], ar[5], mv);
 	printf("pos: %d, A: %d, C: %d\n", ar[3], ar[4], ar[5]);
-	return (1);
+	printf("pos: %d, A: %d, B: %d, C: %d\n", ar[3], mv[0], mv[1], mv[2]);
+}
+
+fptr get_fptr(int mv[3], int i)
+{
+	if (i == 0)
+	{
+		if (mv[0] > 0)
+			return (rotate_a);
+		else
+			return (rev_rot_a);
+	}
+	else if (i == 1)
+	{
+		if (mv[1] > 0)
+			return (rotate_b);
+		else
+			return (rev_rot_b);
+	}
+	else
+	{
+		if (mv[2] > 0)
+			return (rotate_ab);
+		else
+			return (rev_rot_ab);
+	}
+}
+
+
+int	fill_b_ii(t_dll **a, t_dll **b)
+{
+	int	mv[3];
+	fptr	func_ptr;
+	int	i;
+	int	j;
+	static int count;
+
+	while (count_stack(*a) > 3)
+	{
+		get_opt(a, b, mv);
+		i = 0;
+		while (i < 3)
+		{
+			func_ptr = get_fptr(mv, i);
+			j = 0;
+			while (j++ < ft_abs(mv[i]))
+			{
+				func_ptr(a, b);
+				count++;
+			}
+			i++;
+		}
+		push_b(a, b);
+		count++;
+		print_stacks(*a, *b);
+	}
+	return (count);
 }
 
 /*
-int	fill_b(t_dll *a, t_dll *b)
+int	sort_large(t_dll **a, t_dll **b)
 {
 	int	len;
-	int	i;
-	t_dll	*ptr;
 
-	len = count_stack(a);
-	i = 1;
-	ptr = a;
-	while (i <= len) 
+	push_b(a,b);
+	push_b(a,b);
+	while (count_stack(a) > 3)
 	{
 */		
 
@@ -588,16 +685,13 @@ int	push_swap(t_dll *stack_a)
 	close_dll(stack_a);
 	push_b(&stack_a, &stack_b);
 	push_b(&stack_a, &stack_b);
-	push_b(&stack_a, &stack_b);
-	push_b(&stack_a, &stack_b);
-	push_b(&stack_a, &stack_b);
-/*	int i = 1;
-	while (i <= count_stack(stack_a))
-		printf("min steps: %d\n", get_steps(stack_a, i++));
-*/
+int res = fill_b_ii(&stack_a, &stack_b);
+//	rotate_ab(&stack_a, &stack_b);	
+	printf("total ops: %d\n", res + 2);
+
 	print_stacks(stack_a, stack_b);		// ---------> continue here
 //	printf("\npos: %d\n", get_pos_b(stack_a, 45));
-	find_opt(stack_a, stack_b);
+//	get_opt(stack_a, stack_b);
 	return (1);
 }
 	
