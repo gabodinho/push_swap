@@ -6,7 +6,7 @@
 /*   By: ggiertzu <ggiertzu@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/28 01:01:18 by ggiertzu          #+#    #+#             */
-/*   Updated: 2023/12/22 23:04:15 by ggiertzu         ###   ########.fr       */
+/*   Updated: 2023/12/24 01:42:08 by ggiertzu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ int	count_stack(t_dll *start)
 	}
 	return (i);
 }
-
+/*
 int	count_dll(t_dll	*top)
 {
 	t_dll	*ptr;
@@ -69,6 +69,7 @@ int	count_dll(t_dll	*top)
 	}
 	return (i);
 }
+*/
 
 void	del_list(t_dll *ref)
 {
@@ -214,22 +215,11 @@ void	add_top_node(t_dll **top, t_dll *node)
 	}
 }
 
-/*
-t_dll	*cp_node(t_dll *node)
-{
-	int	temp;
-
-	if (!node)
-		return ;
-	temp = node -> val;
-	return (new_node(
-*/
-
 void	swap_a(t_dll *topa)
 {
 	int	temp;
 
-	if (count_dll(topa) < 2)
+	if (count_stack(topa) < 2)
 		return ;
 	temp = topa -> val;
 	topa -> val = (topa -> lower) -> val;
@@ -240,7 +230,7 @@ void	swap_b(t_dll *topb)
 {
 	int	temp;
 
-	if (count_dll(topb) < 2)
+	if (count_stack(topb) < 2)
 		return ;
 	temp = topb -> val;
 	topb -> val = (topb -> lower) -> val;
@@ -257,9 +247,9 @@ void	push_a(t_dll **a, t_dll **b)
 {
 	t_dll	*temp;
 
-	if (!*a)
+	if (!*b)
 		return ;
-	add_top_node(b, new_node((*a) -> val));
+	add_top_node(a, new_node((*b) -> val));
 	rm_top_node(b);
 }
 
@@ -300,7 +290,7 @@ void	rev_rot_a(t_dll **a, t_dll **b)
 	(void)	b;
 	if (!*a)
 		return ;
-	*a = (*b) -> higher;
+	*a = (*a) -> higher;
 }
 
 void	rev_rot_b(t_dll **a, t_dll **b)
@@ -428,7 +418,7 @@ void	find_dups(t_dll *top)
 	int		j;
 	t_dll	*ptr;
 
-	seen = malloc(sizeof(int) * count_dll(top));
+	seen = malloc(sizeof(int) * count_stack(top));
 	i = 0;
 	if (!seen)
 		free_list(top);
@@ -464,6 +454,27 @@ t_dll	*check_input(int argc, char *argv[])
 	return (top);
 }
 
+int	get_offset(t_dll *a)
+{
+	int	len;
+	int	temp;
+	int	i;
+	t_dll	*ptr;
+
+	len = count_stack(a);
+	i = 1;
+	ptr = a;
+	temp = a -> val;
+	while (i++ < len)
+	{
+		temp = ptr -> val;
+		ptr = ptr -> lower;
+		if (temp > (ptr -> lower) -> val)
+			return (i + 1);
+	}
+	return (i);
+}		
+
 int	get_steps(t_dll *stack, int x)
 {
 	int	len;
@@ -476,7 +487,6 @@ int	get_steps(t_dll *stack, int x)
 	else
 		return (-(len + 1 - x));
 }
-
 
 // given that b is sorted (desc), this func returns the postition of x in b
 int	get_pos_b(t_dll *b, int x)
@@ -495,6 +505,31 @@ int	get_pos_b(t_dll *b, int x)
 	v = ptr -> val;
 	h = (ptr -> higher) -> val;
 	while ((v > x && x > h) || (h > v && v > x) || (x > h && h > v))
+	{
+		pos++;
+		h = v;
+		ptr = ptr -> lower;
+		v = ptr -> val;
+	}
+	return (pos);
+}
+
+int	get_pos_a(t_dll *b, int x)
+{
+	int		pos;
+	int		v;
+	int		h;
+	t_dll	*ptr;
+
+	if (!b)
+		return (0);	// --> create new node and put on top
+	else if (count_stack(b) == 1)
+		return (1);
+	ptr = b;
+	pos = 1;
+	v = ptr -> val;
+	h = (ptr -> higher) -> val;
+	while ((v < x && x < h) || (h < v && v < x) || (x < h && h < v))
 	{
 		pos++;
 		h = v;
@@ -610,25 +645,25 @@ void	get_opt(t_dll **a, t_dll **b, int mv[3])
 	printf("pos: %d, A: %d, B: %d, C: %d\n", ar[3], mv[0], mv[1], mv[2]);
 }
 
-fptr get_fptr(int mv[3], int i)
+fptr get_fptr(int mv, int i)
 {
 	if (i == 0)
 	{
-		if (mv[0] > 0)
+		if (mv > 0)
 			return (rotate_a);
 		else
 			return (rev_rot_a);
 	}
 	else if (i == 1)
 	{
-		if (mv[1] > 0)
+		if (mv > 0)
 			return (rotate_b);
 		else
 			return (rev_rot_b);
 	}
 	else
 	{
-		if (mv[2] > 0)
+		if (mv > 0)
 			return (rotate_ab);
 		else
 			return (rev_rot_ab);
@@ -650,7 +685,7 @@ int	fill_b_ii(t_dll **a, t_dll **b)
 		i = 0;
 		while (i < 3)
 		{
-			func_ptr = get_fptr(mv, i);
+			func_ptr = get_fptr(mv[i], i);
 			j = 0;
 			while (j++ < ft_abs(mv[i]))
 			{
@@ -666,16 +701,60 @@ int	fill_b_ii(t_dll **a, t_dll **b)
 	return (count);
 }
 
-/*
-int	sort_large(t_dll **a, t_dll **b)
+void	sort_three(t_dll **a, t_dll **b)
 {
-	int	len;
+	int	ar[3];
 
-	push_b(a,b);
-	push_b(a,b);
-	while (count_stack(a) > 3)
+	while (1)
 	{
-*/		
+		ar[0] = (*a) -> val;
+		ar[1] = (*a) -> lower -> val;
+		ar[2] = (*a) -> higher -> val;
+		if ((ar[1] > ar[2] && ar[2] > ar[0]) || (ar[2] > ar[0] && ar[0] > ar[1]))
+			swap_a(*a);
+		if ((ar[0] > ar[2] && ar[2] > ar[1]) || (ar[0] > ar[1] && ar[1] > ar[2]))
+			rotate_a(a, b);
+		if (ar[1] > ar[0] && ar[0] > ar[2])
+			rev_rot_a(a, b);
+		if (!(ar[0] > ar[1] && ar[1] > ar[2]))
+			break;
+	}
+}
+
+void	final_rot(t_dll **a, t_dll **b)
+{
+	int		steps;
+	fptr	func_ptr;
+
+	steps = get_steps(*a, get_offset(*a));
+	if (steps > 0)
+		func_ptr = rotate_a;
+	else
+	{
+		func_ptr = rev_rot_a;
+		steps *= -1;
+	}
+	while (steps-- > 0)
+		func_ptr(a, b);
+}
+
+void	fill_a(t_dll **a, t_dll **b)
+{
+	int		steps;
+	int		j;
+	fptr	func_ptr;
+
+	while (*b)
+	{
+		steps = get_steps(*a, get_pos_a(*a, get_val(*b, 1)));
+		func_ptr = get_fptr(steps, 0);
+		j = 0;
+		while (j++ < ft_abs(steps))
+			func_ptr(a, b);
+		push_a(a, b);
+		print_stacks(*a, *b);
+	}
+}
 
 int	push_swap(t_dll *stack_a)
 {
@@ -686,9 +765,12 @@ int	push_swap(t_dll *stack_a)
 	push_b(&stack_a, &stack_b);
 	push_b(&stack_a, &stack_b);
 int res = fill_b_ii(&stack_a, &stack_b);
+	sort_three(&stack_a, &stack_b);
+	fill_a(&stack_a, &stack_b);
+	final_rot(&stack_a, &stack_b);
 //	rotate_ab(&stack_a, &stack_b);	
 	printf("total ops: %d\n", res + 2);
-
+	printf("offset: %d\n", get_offset(stack_a));
 	print_stacks(stack_a, stack_b);		// ---------> continue here
 //	printf("\npos: %d\n", get_pos_b(stack_a, 45));
 //	get_opt(stack_a, stack_b);
